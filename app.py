@@ -8,7 +8,7 @@ from aiocache import SimpleMemoryCache
 
 
 BASE_URL = "https://demo.calendar42.com/api/v2"
-TOKEN = os.environ.get('CALENDAR_42_TOKEN')
+TOKEN = os.environ.get('CALENDAR42_TOKEN')
 
 
 # NOTE: use redis in production
@@ -70,4 +70,6 @@ async def event_with_subscriptions(request):
 app = web.Application()
 app.router.add_get('/event-with-subscriptions/{event_id}', event_with_subscriptions)
 
-web.run_app(app, host='127.0.0.1', port=8080)
+
+if __name__ == '__main__':
+    web.run_app(app, host='127.0.0.1', port=8080)
