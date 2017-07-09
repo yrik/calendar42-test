@@ -2,9 +2,8 @@ import os
 
 import asyncio
 
-from aiohttp import web, client_exceptions, ClientSession
-
 from aiocache import SimpleMemoryCache
+from aiohttp import web, client_exceptions, ClientSession
 
 
 BASE_URL = "https://demo.calendar42.com/api/v2"
@@ -30,7 +29,7 @@ async def fetch(url, session):
     async with session.get(url, headers=headers) as response:
         data = await response.json()
         if response.status == 200:
-             await cache.set(url, data)
+            await cache.set(url, data)
         else:
             await cache.delete(url)
         return data
@@ -49,31 +48,45 @@ async def event_with_subscriptions(request):
         task = asyncio.ensure_future(fetch(url, session))
         tasks.append(task)
 
-        url = BASE_URL + '/event-subscriptions/?event_ids=[{event_id}]'.format(event_id=event_id)
+        url = BASE_URL + '/event-subscriptions/?event_ids=[{event_id}]'.format(
+                                                             event_id=event_id)
         task = asyncio.ensure_future(fetch(url, session))
         tasks.append(task)
 
         try:
             event, subscribers = await asyncio.gather(*tasks)
         except client_exceptions.ClientResponseError:
-            data = {'error': {'status_code': 500, 'message': 'Can not get response from Calendar42'}}
+            data = {
+                'error': {
+                    'status_code': 500,
+                    'message': 'Can not get response from Calendar42'
+                }
+            }
             return web.json_response(data, status=500)
 
         if 'error' in event:
-            return web.json_response(event, status=event['error']['status_code'])
+            status = event['error']['status_code']
+            return web.json_response(event, status=status)
         if 'error' in subscribers:
-            return web.json_response(subscribers, status=subscribers['error']['status_code'])
+            status = subscribers['error']['status_code']
+            return web.json_response(subscribers, status=status)
 
+        names = []
+        for item in subscribers['data']:
+            names.append(item['subscriber']['first_name'])
         data = {
             'id': event_id,
             'title': event['data'][0]['title'],
-            'names': [item['subscriber']['first_name'] for item in subscribers['data']],
+            'names': names,
         }
         return web.json_response(data)
 
 
 app = web.Application()
-app.router.add_get('/event-with-subscriptions/{event_id}', event_with_subscriptions)
+app.router.add_get(
+    '/event-with-subscriptions/{event_id}',
+    event_with_subscriptions,
+)
 
 
 if __name__ == '__main__':
