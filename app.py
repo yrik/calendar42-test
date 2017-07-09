@@ -16,6 +16,9 @@ cache = SimpleMemoryCache(timeout=260)  # 4.2 min
 
 
 async def fetch(url, session):
+    """
+    Returns JSON content of the page.
+    """
     cached = await cache.get(url)
     if cached:
         return cached
@@ -34,7 +37,9 @@ async def fetch(url, session):
 
 
 async def event_with_subscriptions(request):
-
+    """
+    Returns combined event and subscriptions data for given event_id.
+    """
     event_id = request.match_info.get('event_id')
 
     tasks = []

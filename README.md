@@ -19,3 +19,32 @@ Things to keep in mind:
 
 P.S. In Django view caching is ready out of the box, with aiohttp
 we need to use something like aiohttp-cache.
+
+
+Live demo
+=========
+
+https://still-coast-28329.herokuapp.com/event-with-subscriptions/9d3b488d6d8dfef63f0c5d986bf86429_14901767281894
+
+
+Installation
+============
+
+prerequisites
+-------------
+- python 3.6
+
+Installation process
+--------------------
+```
+python3 -m venv .env
+source .env/bin/activate
+pip install -r requirements.txt
+```
+Run dev server
+--------------
+```
+export CALENDAR42_TOKEN=<value>
+python app.py
+# Go to http://127.0.0.1:8080/event-with-subscriptions/9d3b488d6d8dfef63f0c5d986bf86429_14901767281894
+```
