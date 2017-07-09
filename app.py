@@ -1,20 +1,36 @@
 import os
 
 import asyncio
+
 from aiohttp import web, client_exceptions, ClientSession
+
+from aiocache import SimpleMemoryCache
 
 
 BASE_URL = "https://demo.calendar42.com/api/v2"
 TOKEN = os.environ.get('CALENDAR_42_TOKEN')
 
 
+# NOTE: use redis in production
+cache = SimpleMemoryCache(timeout=260)  # 4.2 min
+
+
 async def fetch(url, session):
+    cached = await cache.get(url)
+    if cached:
+        return cached
+
     headers = {
         'Content-type': 'application/json',
         'Authorization': 'Token {token}'.format(token=TOKEN),
     }
     async with session.get(url, headers=headers) as response:
-        return await response.json()
+        data = await response.json()
+        if response.status == 200:
+             await cache.set(url, data)
+        else:
+            await cache.delete(url)
+        return data
 
 
 async def event_with_subscriptions(request):
@@ -53,4 +69,5 @@ async def event_with_subscriptions(request):
 
 app = web.Application()
 app.router.add_get('/event-with-subscriptions/{event_id}', event_with_subscriptions)
+
 web.run_app(app, host='127.0.0.1', port=8080)
